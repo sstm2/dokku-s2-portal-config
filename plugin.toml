@@ -1,0 +1,6 @@
+[plugin]
+name = "s2-portal-config"
+description = "Sets additional configuration for System2 portal apps"
+version = "1.0.0"
+website_url = "https://github.com/sstm2/dokku-s2-portal-config"
+[plugin.config]
