@@ -1,15 +1,38 @@
 #!/usr/bin/env bash
 set -eo pipefail
 [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
 source "$PLUGIN_AVAILABLE_PATH/config/functions"
+source "$PLUGIN_AVAILABLE_PATH/storage/functions"
+source "$PLUGIN_AVAILABLE_PATH/docker-options/functions"
+
 
 s2-portal-config() {
   declare BUILDER_TYPE="$1" APP="$2"
 
+
+  ########################################################################
   # set additional config values, will end up as env vars in the container
+  #
 
   # dokku app name
   config_set --no-restart "$APP" DOKKU_APP_NAME="$APP"
+
+
+  ########################################################################
+  # configure dokku storage mounts (uses docker volume mounts)
+  #   NOTE: this code modeled after the mount command of the core storage plugin, at this path: /var/lib/dokku/plugins/available/storage/subcommands/mount
+  #
+  local passed_phases=(deploy run)
+
+  # app storage
+  local source_dir="$DOKKU_LIB_ROOT/data/storage/$APP"
+  local target_dir="/app/storage"
+  mkdir -p "$source_dir"
+  local mount_path="$source_dir:$target_dir"
+  check_if_path_exists "$mount_path" "$(get_phase_file_path "${passed_phases[@]}")" || add_passed_docker_option passed_phases[@] "-v $mount_path"
+
+
 }
 
 s2-portal-config "$@"
